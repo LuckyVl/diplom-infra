@@ -1,27 +1,27 @@
-# Terraform
-*.tfstate
-*.tfstate.*
-.terraform/
-.terraform.lock.hcl
-*.tfvars
-!example.tfvars
+# Terraform state и кэш
+**/*.tfstate
+**/*.tfstate.*
+**/*.tfstate.backup
+**/.terraform/
+**/.terraform.lock.hcl
+
+# СЕКРЕТЫ (КРИТИЧНО для публичного репозитория!)
+**/*.tfvars
+!**/example.tfvars
+**/secrets/
+**/*.pem
+**/id_rsa*
+**/id_ed25519*
+**/.env
 
 # Ansible
-*.retry
+**/*.retry
 
-# IDE
+# IDE и OS
 .idea/
 .vscode/
-*.swp
-*.swo
-
-# OS
+**/*.swp
+**/*.swo
+*~
 .DS_Store
 Thumbs.db
-
-# SSH keys (НИКОГДА не коммить секреты)
-*.pem
-id_rsa*
-
-# Secrets
-secrets/
