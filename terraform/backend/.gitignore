@@ -1,0 +1,16 @@
+# Terraform state
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Terraform cache
+.terraform/
+.terraform.lock.hcl
+
+# Переменные с секретами
+terraform.tfvars
+*.tfvars
+
+# Crash log
+crash.log
+crash.*.log
