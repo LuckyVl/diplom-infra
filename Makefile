@@ -27,6 +27,20 @@ infra-apply:
 	echo "🔗 IP бастиона: $$BASTION_IP"
 
 infra-destroy:
+	@echo "🧹 Очистка Container Registry перед удалением..."
+	@REGISTRY_ID=$$(terraform -chdir=terraform/infra output -raw registry_id 2>/dev/null || echo ""); \
+	if [ -n "$$REGISTRY_ID" ]; then \
+		echo "Найден реестр: $$REGISTRY_ID. Удаляем образы..."; \
+		yc container image list --registry-id $$REGISTRY_ID --format json 2>/dev/null | jq -r '.[].id' | while read image_id; do \
+			if [ -n "$$image_id" ]; then \
+				echo "  Удаляем образ: $$image_id"; \
+				yc container image delete --id $$image_id --async 2>/dev/null || true; \
+			fi \
+		done; \
+		echo "⏳ Ждем 10 секунд, пока облако обработает удаление образов..."; \
+		sleep 10; \
+	fi
+	@echo "🔨 Запуск terraform destroy..."
 	cd terraform/infra && terraform destroy -auto-approve
 
 test:
@@ -35,12 +49,10 @@ test:
 
 infra-redeploy: infra-destroy infra-apply
 
-# === KUBERNETES DEPLOYMENT ===
 k8s-deploy:
 	@echo "🚀 Запуск скрипта развертывания Kubernetes..."
 	./scripts/deploy-k8s.sh
 
-# === ПОЛНОЕ РАЗВЕРТЫВАНИЕ (INFRA + K8S) ===
 deploy-all: infra-apply k8s-deploy
 	@echo "========================================="
 	@echo "✅ ПОЛНОЕ РАЗВЕРТЫВАНИЕ ЗАВЕРШЕНО!"
@@ -52,7 +64,5 @@ deploy-all: infra-apply k8s-deploy
 destroy-all: infra-destroy
 	@echo "🧹 Очистка локальных конфигураций..."
 	@rm -f ~/.kube/config
-	@echo "========================================="
 	@echo "⚠️ ИНФРАСТРУКТУРА УНИЧТОЖЕНА"
-	@echo "========================================="
 	@echo "S3 backend и сервисный аккаунт сохранены."
