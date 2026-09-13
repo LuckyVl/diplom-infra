@@ -34,3 +34,25 @@ test:
 	./test-infra.sh
 
 infra-redeploy: infra-destroy infra-apply
+
+# === KUBERNETES DEPLOYMENT ===
+k8s-deploy:
+	@echo "🚀 Запуск скрипта развертывания Kubernetes..."
+	./scripts/deploy-k8s.sh
+
+# === ПОЛНОЕ РАЗВЕРТЫВАНИЕ (INFRA + K8S) ===
+deploy-all: infra-apply k8s-deploy
+	@echo "========================================="
+	@echo "✅ ПОЛНОЕ РАЗВЕРТЫВАНИЕ ЗАВЕРШЕНО!"
+	@echo "========================================="
+	@echo "Инфраструктура создана, Kubernetes работает."
+	@echo "Проверь статус: kubectl get nodes"
+
+# === ПОЛНОЕ УНИЧТОЖЕНИЕ ===
+destroy-all: infra-destroy
+	@echo "🧹 Очистка локальных конфигураций..."
+	@rm -f ~/.kube/config
+	@echo "========================================="
+	@echo "⚠️ ИНФРАСТРУКТУРА УНИЧТОЖЕНА"
+	@echo "========================================="
+	@echo "S3 backend и сервисный аккаунт сохранены."
