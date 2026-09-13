@@ -3,11 +3,11 @@ terraform {
     endpoints = {
       s3 = "https://storage.yandexcloud.net"
     }
-    
-    bucket                    = "diplom-terraform-state-luckyvl"
-    region                    = "ru-central1"
-    key                       = "infra/terraform.tfstate"
-    
+
+    bucket = "diplom-terraform-state-luckyvl"
+    region = "ru-central1"
+    key    = "infra/terraform.tfstate"
+
     # Отключаем лишние проверки для Yandex Object Storage
     skip_region_validation      = true
     skip_credentials_validation = true

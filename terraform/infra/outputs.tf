@@ -29,30 +29,30 @@ output "subnet_ids" {
   }
 }
 
-output "ansible_inventory" {
-  value = <<-EOT
-    [bastion]
-    bastion ansible_host=${yandex_compute_instance.bastion.network_interface[0].nat_ip_address} ansible_user=ubuntu ansible_ssh_private_key_file=/home/admin/.ssh/diploma_cloud
+   output "ansible_inventory" {
+     value = <<-EOT
+       [bastion]
+       bastion-host ansible_host=${yandex_compute_instance.bastion.network_interface[0].nat_ip_address} ansible_user=ubuntu ansible_ssh_private_key_file=/home/admin/.ssh/diplom_cloud ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes'
 
-    [master]
-    k8s-master ansible_host=${yandex_compute_instance.k8s_master.network_interface[0].ip_address}
+       [master]
+       k8s-master ansible_host=${yandex_compute_instance.k8s_master.network_interface[0].ip_address}
 
-    [workers]
-    k8s-worker-1 ansible_host=${yandex_compute_instance.k8s_workers[0].network_interface[0].ip_address}
-    k8s-worker-2 ansible_host=${yandex_compute_instance.k8s_workers[1].network_interface[0].ip_address}
+       [workers]
+       k8s-worker-1 ansible_host=${yandex_compute_instance.k8s_workers[0].network_interface[0].ip_address}
+       k8s-worker-2 ansible_host=${yandex_compute_instance.k8s_workers[1].network_interface[0].ip_address}
 
-    [k8s_cluster:children]
-    master
-    workers
+       [k8s_cluster:children]
+       master
+       workers
 
-    [master:vars]
-    ansible_user=ubuntu
-    ansible_ssh_private_key_file=/home/admin/.ssh/diploma_cloud
-    ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyJump=ubuntu@${yandex_compute_instance.bastion.network_interface[0].nat_ip_address}'
+       [master:vars]
+       ansible_user=ubuntu
+       ansible_ssh_private_key_file=/home/admin/.ssh/diplom_cloud
+       ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o ProxyJump=bastion'
 
-    [workers:vars]
-    ansible_user=ubuntu
-    ansible_ssh_private_key_file=/home/admin/.ssh/diploma_cloud
-    ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyJump=ubuntu@${yandex_compute_instance.bastion.network_interface[0].nat_ip_address}'
-  EOT
-}
+       [workers:vars]
+       ansible_user=ubuntu
+       ansible_ssh_private_key_file=/home/admin/.ssh/diplom_cloud
+       ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o ProxyJump=bastion'
+     EOT
+   }
