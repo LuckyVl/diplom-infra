@@ -221,8 +221,8 @@ resource "yandex_compute_instance" "k8s_workers" {
 
 data "yandex_client_config" "current" {}
 
-resource "yandex_container_registry" "diploma_registry" {
-  name      = "diploma-registry-luckyvl"
+resource "yandex_container_registry" "diplom_registry" {
+  name      = "diplom-registry-luckyvl"
   folder_id = data.yandex_client_config.current.folder_id
 }
 
