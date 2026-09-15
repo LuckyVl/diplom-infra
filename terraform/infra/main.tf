@@ -228,5 +228,5 @@ resource "yandex_container_registry" "diploma_registry" {
 
 output "registry_id" {
   description = "ID созданного Container Registry"
-  value       = yandex_container_registry.diploma_registry.id
+  value       = yandex_container_registry.diplom_registry.id
 }

@@ -1,10 +1,12 @@
-# === INFRASTRUCTURE ===
+# === ИНИЦИАЛИЗАЦИЯ ===
 infra-init:
 	cd terraform/infra && terraform init -backend-config=backend.tfvars
 
+# === ПРОВЕРКА ===
 infra-plan:
 	cd terraform/infra && terraform plan
 
+# === РАЗВОРАЧИВАНИЕ ИНФРАСТРУКТУРЫ  ===
 infra-apply:
 	cd terraform/infra && terraform apply -auto-approve
 	@echo "✅ Инфраструктура создана в облаке."
@@ -26,6 +28,7 @@ infra-apply:
 	echo "✅ Ansible inventory и ~/.ssh/config успешно обновлены!"; \
 	echo "🔗 IP бастиона: $$BASTION_IP"
 
+# === УНИЧТОЖЕНИЕ ИНФРАСТРУКТУРЫ ===
 infra-destroy:
 	@echo "🧹 Очистка Container Registry перед удалением..."
 	@REGISTRY_ID=$$(terraform -chdir=terraform/infra output -raw registry_id 2>/dev/null || echo ""); \
@@ -43,22 +46,28 @@ infra-destroy:
 	@echo "🔨 Запуск terraform destroy..."
 	cd terraform/infra && terraform destroy -auto-approve
 
-test:
+# === ТЕСТИРОВАНИЕ ИНФРАСТРУКТУРЫ ПОСЛЕ РАЗВОРАЧИВАНИЯ ===
+test-infra:
 	@echo "🧪 Запуск тестов инфраструктуры..."
-	./test-infra.sh
+	./scripts/test-infra.sh
 
+test-k8s:
+	@echo "🧪 Получение статуса k8s..."
+	./scripts/test-k8s.sh
+
+# === ПЕРЕРАЗВОРАЧИВАНИЕ ИНФРАСТРУКТУРЫ ===
 infra-redeploy: infra-destroy infra-apply
 
+# === РАЗВОРАЧИВАНИЕ K8S ===
 k8s-deploy:
 	@echo "🚀 Запуск скрипта развертывания Kubernetes..."
 	./scripts/deploy-k8s.sh
 
-deploy-all: infra-apply k8s-deploy
-	@echo "========================================="
+# === ПОЛНОЕ РАЗВЕРТЫВАНИЕ ===
+deploy-all: infra-apply test-infra k8s-deploy test-k8s
 	@echo "✅ ПОЛНОЕ РАЗВЕРТЫВАНИЕ ЗАВЕРШЕНО!"
-	@echo "========================================="
 	@echo "Инфраструктура создана, Kubernetes работает."
-	@echo "Проверь статус: kubectl get nodes"
+
 
 # === ПОЛНОЕ УНИЧТОЖЕНИЕ ===
 destroy-all: infra-destroy
