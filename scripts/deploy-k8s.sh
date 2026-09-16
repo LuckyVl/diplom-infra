@@ -52,18 +52,26 @@ grep -q "kube_version: v1.29.5" inventory/diplom/group_vars/k8s_cluster/k8s-clus
 echo "🔨 Запуск Kubespray playbook (это займет 15-25 минут)..."
 ansible-playbook -i inventory/diplom/hosts.yaml --become --become-user=root cluster.yml
 
-# 6. Получение kubeconfig и настройка туннеля
+# 6. Получение kubeconfig и исправление адреса API-сервера
 echo "🔑 Настройка локального доступа (kubeconfig)..."
 mkdir -p ~/.kube
-ssh -o ProxyJump=bastion ubuntu@$MASTER_IP "sudo cat /etc/kubernetes/admin.conf" > ~/.kube/config
-chmod 600 ~/.kube/config
-sed -i "s|server: https://.*:6443|server: https://127.0.0.1:6443|g" ~/.kube/config
-echo "🚀 Настройка автоматического SSH-туннеля для kubectl..."
-pkill -f "ssh -f -N -L 6443:${MASTER_IP}:6443" 2>/dev/null || true
-sleep 1
-ssh -f -N -L 6443:${MASTER_IP}:6443 -o ProxyJump=bastion -i /home/admin/.ssh/diplom_cloud ubuntu@$MASTER_IP
 
-echo "🎉 Kubernetes успешно развернут и настроен!"
-echo "💡 Доступ к кластеру осуществляется через локальный порт 6443 (SSH-туннель запущен в фоне)."
+scp -q -o ProxyJump=bastion ubuntu@"${MASTER_IP}":/etc/kubernetes/admin.conf ~/.kube/config
+chmod 600 ~/.kube/config
+
+sed -i "s|server: https://127.0.0.1:6443|server: https://${MASTER_IP}:6443|g" ~/.kube/config
+
+# (Опционально) # Если нужен туннель  для доступа с другого компьютера, 
+# раскомментируйте строки ниже, но для работы с самой VM они не нужны.
+
+# echo "🚀 Настройка автоматического SSH-туннеля для kubectl..."
+# pkill -f "ssh -f -N -L 6443:${MASTER_IP}:6443" 2>/dev/null || true
+# sleep 1
+# ssh -f -N -L 6443:"${MASTER_IP}":6443 -o ProxyJump=bastion -i /home/admin/.ssh/diplom_cloud ubuntu@"${MASTER_IP}"
+
+echo "✅ Kubernetes успешно развернут и настроен!"
+echo "💡 Доступ к кластеру осуществляется напрямую через внутренний IP: ${MASTER_IP}"
+
+
 kubectl get nodes
 kubectl get pods --all-namespaces
