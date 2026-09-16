@@ -65,6 +65,11 @@ resource "yandex_vpc_security_group" "k8s_sg" {
     v4_cidr_blocks = [yandex_vpc_subnet.diplom_subnets["ru-central1-a"].v4_cidr_blocks[0]]
     port           = 22
   }
+  
+  ingress {
+    protocol       = "ICMP"
+    v4_cidr_blocks = ["10.50.0.0/16"]
+  }
 
   ingress {
     protocol       = "TCP"

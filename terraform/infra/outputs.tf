@@ -32,8 +32,9 @@ output "subnet_ids" {
    output "ansible_inventory" {
      value = <<-EOT
        [bastion]
-       bastion-host ansible_host=${yandex_compute_instance.bastion.network_interface[0].nat_ip_address} ansible_user=ubuntu ansible_ssh_private_key_file=/home/admin/.ssh/diplom_cloud ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes'
-
+       bastion-host-ex ansible_host=${yandex_compute_instance.bastion.network_interface[0].nat_ip_address} ansible_user=ubuntu ansible_ssh_private_key_file=/home/admin/.ssh/diplom_cloud ansible_ssh_common_args='-o StrictHostKeyChecking=no -o IdentitiesOnly=yes'
+       bastion-host-in ansible_host=${yandex_compute_instance.bastion.network_interface[0].ip_address}
+       
        [master]
        k8s-master ansible_host=${yandex_compute_instance.k8s_master.network_interface[0].ip_address}
 

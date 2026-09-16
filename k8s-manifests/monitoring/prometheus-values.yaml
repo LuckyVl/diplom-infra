@@ -1,0 +1,41 @@
+# k8s-manifests/monitoring/prometheus-values.yaml
+prometheus:
+  prometheusSpec:
+    retention: 2d
+    resources:
+      requests:
+        memory: 400Mi
+        cpu: 100m
+      limits:
+        memory: 800Mi
+        cpu: 500m
+
+grafana:
+  adminPassword: "admin"
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - grafana.diplom.local
+    path: /
+  
+  resources:
+    requests:
+      memory: 200Mi
+      cpu: 50m
+    limits:
+      memory: 400Mi
+      cpu: 200m
+
+alertmanager:
+  enabled: true
+  resources:
+    requests:
+      memory: 100Mi
+      cpu: 50m
+
+kube-state-metrics:
+  enabled: true
+
+prometheus-node-exporter:
+  enabled: true

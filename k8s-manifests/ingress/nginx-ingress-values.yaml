@@ -1,0 +1,10 @@
+# k8s-manifests/ingress/nginx-ingress-values.yaml
+controller:
+  replicaCount: 1
+  kind: Deployment
+  service:
+    type: LoadBalancer
+    loadBalancerIP: "PLACEHOLDER_IP" 
+    externalTrafficPolicy: Local
+  config:
+    use-forwarded-headers: "true"

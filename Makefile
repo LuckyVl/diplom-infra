@@ -51,10 +51,6 @@ test-infra:
 	@echo "🧪 Запуск тестов инфраструктуры..."
 	./scripts/test-infra.sh
 
-test-k8s:
-	@echo "🧪 Получение статуса k8s..."
-	./scripts/test-k8s.sh
-
 # === ПЕРЕРАЗВОРАЧИВАНИЕ ИНФРАСТРУКТУРЫ ===
 infra-redeploy: infra-destroy infra-apply
 
@@ -63,14 +59,77 @@ k8s-deploy:
 	@echo "🚀 Запуск скрипта развертывания Kubernetes..."
 	./scripts/deploy-k8s.sh
 
+# === СБОРКА ОБРАЗА ПРИЛОЖЕНИЯ И ЗАГРУЗКА В REGISTRY ===
+build-app:
+	@echo " Сборка Docker образа..."
+	@REGISTRY_ID=$$(terraform -chdir=terraform/infra output -raw registry_id); \
+	cd ../diplom-app && docker build --no-cache -t cr.yandex/$$REGISTRY_ID/diplom-app:v1.0.0 .
+	@echo "✅ Образ собран"
+
+# === СБОРКА И ЗАГРУЗКА ОБРАЗА ПРИЛОЖЕНИЯ В REGISTRY ===
+push-app: build-app
+	@echo "📤 Загрузка образа в Yandex Container Registry..."
+	@REGISTRY_ID=$$(terraform -chdir=terraform/infra output -raw registry_id); \
+	docker push cr.yandex/$$REGISTRY_ID/diplom-app:v1.0.0
+	@echo "✅ Образ загружен в registry"
+
+# === СПИСОК ОБРАЗОВ В REGISTRY ===
+list-images:
+	@echo " Список образов в registry:"
+	@REGISTRY_ID=$$(terraform -chdir=terraform/infra output -raw registry_id); \
+	yc container image list --registry-id $$REGISTRY_ID
+
+# === ОЧИСТКА КОНФИГУРАЦИЙ И ДАННЫХ В DOCKER НА ХОСТЕ ГДЕ ВЫПОЛНЯЕТСЯ СБОРКА ===
+docker-clean:
+	@echo "🧹 Полная очистка Docker от старых образов и кэша (критично для обхода бага с кэшированием ID реестра)..."
+	-docker rmi $$(docker images -q) 2>/dev/null || true
+	-docker image prune -a -f
+	-docker system prune -a -f
+	@echo "✅ Docker очищен"
+
+# === РАЗВОРАЧИВАНИЕ INGRESS ===
+deploy-ingress:
+	@echo "🚀 Деплой Nginx Ingress Controller..."
+	@IP=$$(terraform -chdir=terraform/infra output -raw ingress_static_ip); \
+	sed "s/PLACEHOLDER_IP/$$IP/g" k8s-manifests/ingress/nginx-ingress-values.yaml > /tmp/nginx-values.yaml; \
+	helm upgrade --install ingress-nginx ingress-nginx \
+		--repo https://kubernetes.github.io/ingress-nginx \
+		--namespace ingress-nginx --create-namespace \
+		-f /tmp/nginx-values.yaml \
+		--wait
+
+# === РАЗВОРАЧИВАНИЕ PROMETHEUS ===
+deploy-monitoring:
+	@echo "📊 Деплой kube-prometheus-stack..."
+	helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-stack \
+		--repo https://prometheus-community.github.io/helm-charts \
+		--namespace monitoring --create-namespace \
+		-f k8s-manifests/monitoring/prometheus-values.yaml \
+		--wait
+
+# === РАЗВОРАЧИВАНИЕ APP ===
+deploy-app:
+	@echo "📦 Деплой тестового приложения..."
+	@REGISTRY_ID=$$(terraform -chdir=terraform/infra output -raw registry_id); \
+	sed "s/PLACEHOLDER_REGISTRY_ID/$$REGISTRY_ID/g" k8s-manifests/app/deployment.yaml | kubectl apply -f -
+	kubectl apply -f k8s-manifests/app/ingress.yaml
+
+# === РАЗВОРАЧИВАНИЕ INGRESS + PROMETHEUS + APP ===
+deploy-all-k8s: deploy-ingress deploy-monitoring deploy-app
+	@echo "✅ Все K8s компоненты успешно задеплоены!"
+	@echo "🔗 Получи IP Ingress командой: kubectl get svc -n ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}'"
+
 # === ПОЛНОЕ РАЗВЕРТЫВАНИЕ ===
-deploy-all: infra-apply test-infra k8s-deploy test-k8s
+deploy-all: infra-apply test-infra k8s-deploy push-app list-images deploy-all-k8s
 	@echo "✅ ПОЛНОЕ РАЗВЕРТЫВАНИЕ ЗАВЕРШЕНО!"
-	@echo "Инфраструктура создана, Kubernetes работает."
+	@echo "Инфраструктура создана"
+	@echo "Kubernetes работает"
+	@echo "Образ приложения собран"
+	@echo "Образ загружен в registry"
 
 
 # === ПОЛНОЕ УНИЧТОЖЕНИЕ ===
-destroy-all: infra-destroy
+destroy-all: infra-destroy docker-clean
 	@echo "🧹 Очистка локальных конфигураций..."
 	@rm -f ~/.kube/config
 	@echo "⚠️ ИНФРАСТРУКТУРА УНИЧТОЖЕНА"
