@@ -132,5 +132,6 @@ deploy-all: infra-apply test-infra k8s-deploy push-app list-images deploy-all-k8
 destroy-all: infra-destroy docker-clean
 	@echo "🧹 Очистка локальных конфигураций..."
 	@rm -f ~/.kube/config
+	@rm -f ~/.ssh/known_hosts ~/.ssh/known_hosts2
 	@echo "⚠️ ИНФРАСТРУКТУРА УНИЧТОЖЕНА"
 	@echo "S3 backend и сервисный аккаунт сохранены."

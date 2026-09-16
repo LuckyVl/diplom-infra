@@ -1,0 +1,4 @@
+0000000000000000000000000000000000000000 f638fd95b590c8339817f275bb1eb80177df46fe Filatov.v.k <Filatov.v.k@mail.ru> 1789583435 +0000	reset: moving to origin/main
+f638fd95b590c8339817f275bb1eb80177df46fe 0000000000000000000000000000000000000000 Filatov.v.k <Filatov.v.k@mail.ru> 1789583435 +0000	Branch: renamed refs/heads/master to refs/heads/main
+0000000000000000000000000000000000000000 f638fd95b590c8339817f275bb1eb80177df46fe Filatov.v.k <Filatov.v.k@mail.ru> 1789583435 +0000	Branch: renamed refs/heads/master to refs/heads/main
+f638fd95b590c8339817f275bb1eb80177df46fe 32b69552a3824e9fea11d0ef19ef769fd1e7a4d1 Filatov.v.k <Filatov.v.k@mail.ru> 1789583475 +0000	commit: fix: recover git repo again after corruption
