@@ -3,6 +3,9 @@ set -e # Останавливать скрипт при любой ошибке
 
 echo "🚀 Запуск автоматизированного развертывания Kubernetes..."
 
+#  Очистка зависших lock-файлов на случай перезапуска
+rm -f ~/diplom/kubespray-temp/kubespray/inventory/diplom/credentials/*.ansible_lockfile
+
 # 1. Получаем актуальные IP-адреса из Terraform
 echo "📡 Чтение IP-адресов из Terraform state..."
 cd ~/diplom/diplom-infra
@@ -46,32 +49,44 @@ sed -i 's/^cloud_provider:.*/cloud_provider: external/' inventory/diplom/group_v
 # Добавляем настройки, если их еще нет
 grep -q "ansible_user: ubuntu" inventory/diplom/group_vars/all/all.yml || echo -e "\nansible_user: ubuntu\nansible_become: true\nansible_become_method: sudo\nkube_allow_privileged_containers: true" >> inventory/diplom/group_vars/all/all.yml
 
-grep -q "kube_version: v1.29.5" inventory/diplom/group_vars/k8s_cluster/k8s-cluster.yml || echo -e "\nkube_version: v1.29.5\ningress_nginx_enabled: false\nmetrics_server_enabled: false\ncontainer_manager: containerd" >> inventory/diplom/group_vars/k8s_cluster/k8s-cluster.yml
+grep -q "kube_version: v1.29.5" inventory/diplom/group_vars/k8s_cluster/k8s-cluster.yml || echo -e "\nkube_version: v1.29.5\ningress_nginx_enabled: false\nmetrics_server_enabled: false\ncontainer_manager: containerd\nmultus_enabled: false\nkube_network_plugin_multus: false" >> inventory/diplom/group_vars/k8s_cluster/k8s-cluster.yml
 
 # 5. Запуск Ansible
 echo "🔨 Запуск Kubespray playbook (это займет 15-25 минут)..."
 ansible-playbook -i inventory/diplom/hosts.yaml --become --become-user=root cluster.yml
 
-# 6. Получение kubeconfig и исправление адреса API-сервера
+# 6. Получение kubeconfig и настройка туннеля
 echo "🔑 Настройка локального доступа (kubeconfig)..."
 mkdir -p ~/.kube
 
-scp -q -o ProxyJump=bastion ubuntu@"${MASTER_IP}":/etc/kubernetes/admin.conf ~/.kube/config
+# Копируем конфиг с мастер-ноды через бастион
+ssh -o ProxyJump=bastion \
+    -o StrictHostKeyChecking=no \
+    -o IdentitiesOnly=yes \
+    -i /home/admin/.ssh/diplom_cloud \
+    ubuntu@$MASTER_IP "sudo cat /etc/kubernetes/admin.conf" > ~/.kube/config
+
+# Делаем файл безопасным
 chmod 600 ~/.kube/config
 
-sed -i "s|server: https://127.0.0.1:6443|server: https://${MASTER_IP}:6443|g" ~/.kube/config
+# ВАЖНО: Принудительно устанавливаем 127.0.0.1, так как мы будем использовать SSH-туннель
+sed -i "s|server: https://.*:6443|server: https://127.0.0.1:6443|g" ~/.kube/config
 
-# (Опционально) # Если нужен туннель  для доступа с другого компьютера, 
-# раскомментируйте строки ниже, но для работы с самой VM они не нужны.
+# Автоматически создаем SSH-туннель в фоновом режиме
+echo "🚀 Настройка автоматического SSH-туннеля для kubectl..."
+# Убиваем старые зависшие туннели на этот порт
+pkill -f "ssh.*6443.*${MASTER_IP}" 2>/dev/null || true
+sleep 1
 
-# echo "🚀 Настройка автоматического SSH-туннеля для kubectl..."
-# pkill -f "ssh -f -N -L 6443:${MASTER_IP}:6443" 2>/dev/null || true
-# sleep 1
-# ssh -f -N -L 6443:"${MASTER_IP}":6443 -o ProxyJump=bastion -i /home/admin/.ssh/diplom_cloud ubuntu@"${MASTER_IP}"
+# Создаем туннель: локальный порт 6443 -> порт 6443 на мастер-ноде
+# (Команда использует ~/.ssh/config, где уже прописан ProxyJump bastion для 10.50.*.*)
+ssh -f -N -L 6443:${MASTER_IP}:6443 ubuntu@${MASTER_IP}
 
 echo "✅ Kubernetes успешно развернут и настроен!"
-echo "💡 Доступ к кластеру осуществляется напрямую через внутренний IP: ${MASTER_IP}"
+echo "💡 Доступ к кластеру осуществляется через локальный туннель (localhost:6443)"
 
+@sleep 60
+echo "📋 Проверка статуса кластера:"
 
 kubectl get nodes
 kubectl get pods --all-namespaces

@@ -59,6 +59,99 @@ k8s-deploy:
 	@echo "🚀 Запуск скрипта развертывания Kubernetes..."
 	./scripts/deploy-k8s.sh
 
+# Повторный запуск Kubespray (если упал)
+k8s-retry:
+	@echo "🔄 Повторный запуск Kubespray (продолжение с места ошибки)..."
+	cd ~/diplom/kubespray-temp/kubespray && \
+	ansible-playbook -i inventory/diplom/hosts.yaml \
+		--become --become-user=root \
+		-e "ansible_user=ubuntu" \
+		-e "ansible_ssh_private_key_file=/home/admin/.ssh/diplom_cloud" \
+		-e "ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyJump=bastion'" \
+		cluster.yml
+
+# Полный сброс и переустановка K8s (если всё сломалось)
+k8s-reset:
+	@echo "⚠️ Полный сброс Kubernetes кластера..."
+	cd ~/diplom/kubespray-temp/kubespray && \
+	ansible-playbook -i inventory/diplom/hosts.yaml \
+		--become --become-user=root \
+		-e "ansible_user=ubuntu" \
+		-e "ansible_ssh_private_key_file=/home/admin/.ssh/diplom_cloud" \
+		-e "ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyJump=bastion'" \
+		reset.yml
+	@echo "✅ Сброс выполнен. Теперь запусти make k8s-deploy"
+
+k8s-retry-node1:
+	@echo "🔄 Перезапуск только на node1..."
+	cd ~/diplom/kubespray-temp/kubespray && \
+	ansible-playbook -i inventory/diplom/hosts.yaml \
+		--become --become-user=root \
+		--limit node1 \
+		-e "ansible_user=ubuntu" \
+		-e "ansible_ssh_private_key_file=/home/admin/.ssh/diplom_cloud" \
+		-e "ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyJump=bastion'" \
+		cluster.yml
+
+k8s-retry-node2:
+	@echo "🔄 Перезапуск только на node2..."
+	cd ~/diplom/kubespray-temp/kubespray && \
+	ansible-playbook -i inventory/diplom/hosts.yaml \
+		--become --become-user=root \
+		--limit node2 \
+		-e "ansible_user=ubuntu" \
+		-e "ansible_ssh_private_key_file=/home/admin/.ssh/diplom_cloud" \
+		-e "ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyJump=bastion'" \
+		cluster.yml
+
+k8s-retry-node3:
+	@echo "🔄 Перезапуск только на node3..."
+	cd ~/diplom/kubespray-temp/kubespray && \
+	ansible-playbook -i inventory/diplom/hosts.yaml \
+		--become --become-user=root \
+		--limit node3 \
+		-e "ansible_user=ubuntu" \
+		-e "ansible_ssh_private_key_file=/home/admin/.ssh/diplom_cloud" \
+		-e "ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyJump=bastion'" \
+		cluster.yml
+
+# === РУЧНОЕ УПРАВЛЕНИЕ SSH-ТУННЕЛЕМ НА СЛУЧАЙ ОШИБКИ ПРИ РАЗВОРАЧИВАНИИ K8S ПОСЛЕ РУЧНОЙ ПОЧИНКИ K8S ===
+k8s-tunnel:
+k8s-tunnel:
+	@echo "🚀 Настройка SSH-туннеля и kubeconfig к API-серверу Kubernetes..."
+	@MASTER_IP=$$(terraform -chdir=terraform/infra output -raw k8s_master_internal_ip); \
+	echo "📡 Найден Master IP: $$MASTER_IP"; \
+	echo "📥 Получение kubeconfig с мастер-ноды..."; \
+	mkdir -p ~/.kube; \
+	ssh -o ProxyJump=bastion \
+		-o StrictHostKeyChecking=no \
+		-o IdentitiesOnly=yes \
+		-i /home/admin/.ssh/diplom_cloud \
+		ubuntu@$$MASTER_IP "sudo cat /etc/kubernetes/admin.conf" > ~/.kube/config; \
+	chmod 600 ~/.kube/config; \
+	sed -i "s|server: https://.*:6443|server: https://127.0.0.1:6443|g" ~/.kube/config; \
+	echo "🧹 Очистка старых зависших туннелей на порту 6443..."; \
+	pkill -f "ssh.*6443.*$$MASTER_IP" 2>/dev/null || true; \
+	sleep 1; \
+	echo "🔌 Создание нового туннеля: localhost:6443 -> $$MASTER_IP:6443 (через бастион)..."; \
+	ssh -f -N -L 6443:$$MASTER_IP:6443 \
+		-o ProxyJump=bastion \
+		-o StrictHostKeyChecking=no \
+		-o IdentitiesOnly=yes \
+		-i /home/admin/.ssh/diplom_cloud \
+		ubuntu@$$MASTER_IP; \
+	echo "✅ Туннель и kubeconfig успешно настроены!"; \
+	echo "🧪 Проверка подключения..."
+	@kubectl get nodes
+
+# === АВТОРИЗАЦИЯ В REGISTRY ===
+registry-login:
+	@echo "🔐 Принудительная очистка конфига Docker и авторизация через IAM-токен..."
+	@rm -f ~/.docker/config.json
+	@TOKEN=$$(yc iam create-token); \
+	echo "$$TOKEN" | docker login --username iam --password-stdin cr.yandex
+	@echo "✅ Авторизация успешна"
+
 # === СБОРКА ОБРАЗА ПРИЛОЖЕНИЯ И ЗАГРУЗКА В REGISTRY ===
 build-app:
 	@echo " Сборка Docker образа..."
@@ -67,7 +160,7 @@ build-app:
 	@echo "✅ Образ собран"
 
 # === СБОРКА И ЗАГРУЗКА ОБРАЗА ПРИЛОЖЕНИЯ В REGISTRY ===
-push-app: build-app
+push-app: registry-login build-app
 	@echo "📤 Загрузка образа в Yandex Container Registry..."
 	@REGISTRY_ID=$$(terraform -chdir=terraform/infra output -raw registry_id); \
 	docker push cr.yandex/$$REGISTRY_ID/diplom-app:v1.0.0
@@ -89,30 +182,61 @@ docker-clean:
 
 # === РАЗВОРАЧИВАНИЕ INGRESS ===
 deploy-ingress:
-	@echo "🚀 Деплой Nginx Ingress Controller..."
-	@IP=$$(terraform -chdir=terraform/infra output -raw ingress_static_ip); \
-	sed "s/PLACEHOLDER_IP/$$IP/g" k8s-manifests/ingress/nginx-ingress-values.yaml > /tmp/nginx-values.yaml; \
-	helm upgrade --install ingress-nginx ingress-nginx \
+	@echo "🚀 Деплой Nginx Ingress Controller (режим hostNetwork)..."
+	@helm upgrade --install ingress-nginx ingress-nginx \
 		--repo https://kubernetes.github.io/ingress-nginx \
 		--namespace ingress-nginx --create-namespace \
-		-f /tmp/nginx-values.yaml \
+		--set controller.hostNetwork=true \
+		--set controller.kind=DaemonSet \
+		--set controller.service.type=ClusterIP \
+		--timeout 10m0s \
 		--wait
+	@echo "✅ Ingress Controller успешно установлен!"
+	@kubectl get pods -n ingress-nginx
+
+# === ПРОВЕРКА СТАТУСА INGRESS ===
+check-ingress:
+	@echo "📊 Статус Ingress Controller:"
+	@kubectl get pods -n ingress-nginx
+	@echo ""
+	@echo "🌐 Статус сервиса (EXTERNAL-IP):"
+	@kubectl get svc -n ingress-nginx ingress-nginx-controller
+	@echo ""
+	@echo " Ingress ресурсы:"
+	@kubectl get ingress --all-namespaces
 
 # === РАЗВОРАЧИВАНИЕ PROMETHEUS ===
 deploy-monitoring:
+	@echo "📊 Подготовка Helm репозитория Prometheus..."
+	@helm repo add prometheus-community https://prometheus-community.github.io/helm-charts 2>/dev/null || true
+	@helm repo update
 	@echo "📊 Деплой kube-prometheus-stack..."
 	helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-stack \
-		--repo https://prometheus-community.github.io/helm-charts \
 		--namespace monitoring --create-namespace \
 		-f k8s-manifests/monitoring/prometheus-values.yaml \
+		--timeout 15m0s \
 		--wait
+	@echo "✅ Мониторинг успешно установлен!"
+	@kubectl get pods -n monitoring
 
 # === РАЗВОРАЧИВАНИЕ APP ===
+# === РАЗВОРАЧИВАНИЕ APP ===
 deploy-app:
-	@echo "📦 Деплой тестового приложения..."
+	@echo " Деплой тестового приложения..."
+	@echo "🔐 Создание секрета для доступа к Yandex Container Registry..."
+	@TOKEN=$$(yc iam create-token); \
+	kubectl delete secret yc-registry-secret --namespace=default --ignore-not-found; \
+	kubectl create secret docker-registry yc-registry-secret \
+		--docker-server=cr.yandex \
+		--docker-username=iam \
+		--docker-password="$$TOKEN" \
+		--namespace=default
+	@echo "📄 Применение конфигурации приложения..."
 	@REGISTRY_ID=$$(terraform -chdir=terraform/infra output -raw registry_id); \
 	sed "s/PLACEHOLDER_REGISTRY_ID/$$REGISTRY_ID/g" k8s-manifests/app/deployment.yaml | kubectl apply -f -
-	kubectl apply -f k8s-manifests/app/ingress.yaml
+	@kubectl apply -f k8s-manifests/app/ingress.yaml
+	@echo "✅ Приложение развернуто!"
+	@kubectl get pods -n default -l app=diplom-app -w
 
 # === РАЗВОРАЧИВАНИЕ INGRESS + PROMETHEUS + APP ===
 deploy-all-k8s: deploy-ingress deploy-monitoring deploy-app
@@ -126,7 +250,6 @@ deploy-all: infra-apply test-infra k8s-deploy push-app list-images deploy-all-k8
 	@echo "Kubernetes работает"
 	@echo "Образ приложения собран"
 	@echo "Образ загружен в registry"
-
 
 # === ПОЛНОЕ УНИЧТОЖЕНИЕ ===
 destroy-all: infra-destroy docker-clean

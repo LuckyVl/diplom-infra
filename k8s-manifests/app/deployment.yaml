@@ -16,6 +16,8 @@ spec:
       labels:
         app: diplom-app
     spec:
+      imagePullSecrets:
+        - name: yc-registry-secret
       containers:
       - name: nginx
         image: cr.yandex/PLACEHOLDER_REGISTRY_ID/diplom-app:v1.0.0
