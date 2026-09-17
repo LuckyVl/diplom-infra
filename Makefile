@@ -117,7 +117,6 @@ k8s-retry-node3:
 
 # === РУЧНОЕ УПРАВЛЕНИЕ SSH-ТУННЕЛЕМ НА СЛУЧАЙ ОШИБКИ ПРИ РАЗВОРАЧИВАНИИ K8S ПОСЛЕ РУЧНОЙ ПОЧИНКИ K8S ===
 k8s-tunnel:
-k8s-tunnel:
 	@echo "🚀 Настройка SSH-туннеля и kubeconfig к API-серверу Kubernetes..."
 	@MASTER_IP=$$(terraform -chdir=terraform/infra output -raw k8s_master_internal_ip); \
 	echo "📡 Найден Master IP: $$MASTER_IP"; \
@@ -220,7 +219,6 @@ deploy-monitoring:
 	@kubectl get pods -n monitoring
 
 # === РАЗВОРАЧИВАНИЕ APP ===
-# === РАЗВОРАЧИВАНИЕ APP ===
 deploy-app:
 	@echo " Деплой тестового приложения..."
 	@echo "🔐 Создание секрета для доступа к Yandex Container Registry..."
@@ -236,7 +234,6 @@ deploy-app:
 	sed "s/PLACEHOLDER_REGISTRY_ID/$$REGISTRY_ID/g" k8s-manifests/app/deployment.yaml | kubectl apply -f -
 	@kubectl apply -f k8s-manifests/app/ingress.yaml
 	@echo "✅ Приложение развернуто!"
-	@kubectl get pods -n default -l app=diplom-app -w
 
 # === РАЗВОРАЧИВАНИЕ INGRESS + PROMETHEUS + APP ===
 deploy-all-k8s: deploy-ingress deploy-monitoring deploy-app

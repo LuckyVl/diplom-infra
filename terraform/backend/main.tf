@@ -14,14 +14,14 @@ provider "yandex" {
   service_account_key_file = "/home/admin/.config/yandex-cloud/terraform-admin-key.json"
 }
 
-# 1. Сервисный аккаунт
+# Сервисный аккаунт
 resource "yandex_iam_service_account" "terraform_sa" {
   name        = "terraform-sa"
   description = "Service account for Terraform infrastructure management"
   folder_id = var.folder_id
 }
 
-# 2. Права сервисному аккаунту
+# Права сервисному аккаунту
 resource "yandex_resourcemanager_folder_iam_member" "sa_editor" {
   folder_id = var.folder_id
   role      = "editor"
@@ -46,7 +46,7 @@ resource "yandex_resourcemanager_folder_iam_member" "sa_vpc_admin" {
   member    = "serviceAccount:${yandex_iam_service_account.terraform_sa.id}"
 }
 
-# 3. Terraform САМ создает статические ключи для этого аккаунта
+# Terraform создает статические ключи для этого аккаунта
 resource "yandex_iam_service_account_static_access_key" "sa_static_key" {
   service_account_id = yandex_iam_service_account.terraform_sa.id
   description        = "Static access key for S3 backend"
@@ -56,7 +56,7 @@ resource "yandex_iam_service_account_static_access_key" "sa_static_key" {
   ]
 }
 
-# 4. S3 бакет (использует ключи, созданные на шаге 3)
+# S3 бакет
 resource "yandex_storage_bucket" "terraform_state" {
   bucket     = var.bucket_name
   access_key = yandex_iam_service_account_static_access_key.sa_static_key.access_key
