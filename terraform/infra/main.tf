@@ -85,7 +85,7 @@ resource "yandex_vpc_security_group" "k8s_sg" {
 
   ingress {
     protocol       = "TCP"
-    v4_cidr_blocks = ["10.50.0.0/16"]
+    v4_cidr_blocks = ["0.0.0.0/0"]
     port           = 80
   }
 
@@ -241,6 +241,60 @@ data "yandex_client_config" "current" {}
 resource "yandex_container_registry" "diplom_registry" {
   name      = "diplom-registry-luckyvl"
   folder_id = data.yandex_client_config.current.folder_id
+}
+
+resource "yandex_lb_target_group" "k8s_nodes" {
+  name = "k8s-nodes-tg"
+
+  target {
+    subnet_id = yandex_vpc_subnet.diplom_subnets["ru-central1-a"].id
+    address   = yandex_compute_instance.k8s_master.network_interface[0].ip_address
+  }
+
+  target {
+    subnet_id = yandex_vpc_subnet.diplom_subnets["ru-central1-b"].id
+    address   = yandex_compute_instance.k8s_workers[0].network_interface[0].ip_address
+  }
+
+  target {
+    subnet_id = yandex_vpc_subnet.diplom_subnets["ru-central1-d"].id
+    address   = yandex_compute_instance.k8s_workers[1].network_interface[0].ip_address
+  }
+}
+
+resource "yandex_lb_network_load_balancer" "app_lb" {
+  name = "app-nlb"
+  type = "external"
+
+  listener {
+    name        = "http-listener"
+    port        = 80
+    target_port = 80
+    external_address_spec {
+      ip_version = "ipv4"
+    }
+  }
+
+  attached_target_group {
+    target_group_id = yandex_lb_target_group.k8s_nodes.id
+    
+    healthcheck {
+      name               = "http-healthcheck"
+      interval           = 10
+      timeout            = 5
+      unhealthy_threshold = 3
+      healthy_threshold  = 3
+      http_options {
+        path = "/"
+        port = 80
+      }
+    }
+  }
+    depends_on = [
+    yandex_compute_instance.k8s_master,
+    yandex_compute_instance.k8s_workers,
+    yandex_lb_target_group.k8s_nodes
+  ]
 }
 
 output "registry_id" {

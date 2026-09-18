@@ -1,8 +1,8 @@
-# === ИНИЦИАЛИЗАЦИЯ ===
+# === INIT ===
 infra-init:
 	cd terraform/infra && terraform init -backend-config=backend.tfvars
 
-# === ПРОВЕРКА ===
+# === PLAN ===
 infra-plan:
 	cd terraform/infra && terraform plan
 
@@ -53,6 +53,7 @@ test-infra:
 
 # === ПЕРЕРАЗВОРАЧИВАНИЕ ИНФРАСТРУКТУРЫ ===
 infra-redeploy: infra-destroy infra-apply
+	@echo "🔨 Разбираем инфраструктуру и поднимаем заново"
 
 # === РАЗВОРАЧИВАНИЕ K8S ===
 k8s-deploy:
@@ -70,7 +71,7 @@ k8s-retry:
 		-e "ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyJump=bastion'" \
 		cluster.yml
 
-# Полный сброс и переустановка K8s (если всё сломалось)
+# Полный сброс Kubernetes кластера (если всё сломалось)
 k8s-reset:
 	@echo "⚠️ Полный сброс Kubernetes кластера..."
 	cd ~/diplom/kubespray-temp/kubespray && \
@@ -82,6 +83,7 @@ k8s-reset:
 		reset.yml
 	@echo "✅ Сброс выполнен. Теперь запусти make k8s-deploy"
 
+# Повторный запуск настройки node1
 k8s-retry-node1:
 	@echo "🔄 Перезапуск только на node1..."
 	cd ~/diplom/kubespray-temp/kubespray && \
@@ -93,6 +95,7 @@ k8s-retry-node1:
 		-e "ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyJump=bastion'" \
 		cluster.yml
 
+# Повторный запуск настройки node2
 k8s-retry-node2:
 	@echo "🔄 Перезапуск только на node2..."
 	cd ~/diplom/kubespray-temp/kubespray && \
@@ -104,6 +107,7 @@ k8s-retry-node2:
 		-e "ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyJump=bastion'" \
 		cluster.yml
 
+# Повторный запуск настройки node3
 k8s-retry-node3:
 	@echo "🔄 Перезапуск только на node3..."
 	cd ~/diplom/kubespray-temp/kubespray && \
