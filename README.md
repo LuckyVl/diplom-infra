@@ -294,7 +294,9 @@ Bucket (S3) в котором храниться состояние Terraform (�
 ![alt text](./Img/image-17.png)  
 Тесты завершены и запускается автоматическая установка и конфигурирование kubespray  
 ![alt text](./Img/image-18.png)  
+_________
 Артефакты установки kubespray (время установки 00:23:18, поправка времени на +03:00:00)  
+_________
 ![alt text](./Img/image-19.png)  
 ![alt text](./Img/image-20.png)  
 ![alt text](./Img/image-21.png)  
@@ -328,6 +330,7 @@ Bucket (S3) в котором храниться состояние Terraform (�
 ![alt text](./Img/image-49.png)  
 ![alt text](./Img/image-50.png)  
 ![alt text](./Img/image-51.png)  
+_________
 Результат автоматической установки kubespray  
 ![alt text](./Img/image-52.png)  
 Настройка SSH туннеля от Ubuntu VM (diplom-vm) до Бастион, туннеля до нод K8S, проверка связи с kubeAPI  
@@ -340,13 +343,14 @@ Bucket (S3) в котором храниться состояние Terraform (�
 ![alt text](./Img/image-57.png)  
 Получаем список образов в Registry, начинаем установку NGINX в K8S  
 ![alt text](./Img/image-58.png)  
-NGINX в K8S установлен, смотрим статус подов и начинаем установку Prometheus и Grafana  
+NGINX в K8S установлен  
 ![alt text](./Img/image-61.png)  
+Смотрим статус подов и начинаем установку Prometheus и Grafana  
 ![alt text](./Img/image-62.png)  
-Prometheus и Grafana установлены, смотрим статус подов, создаем секрет для подключения K8S к Registry  
+Prometheus и Grafana установлены  
 ![alt text](./Img/image-65.png)  
+Смотрим статус подов, создаем секрет для подключения K8S к Registry
 ![alt text](./Img/image-66.png)  
-_____________
 Статусы подов сервисов на предыдущих шагах в K8S 
 ![alt text](./Img/image-59.png)  
 ![alt text](./Img/image-60.png)  
