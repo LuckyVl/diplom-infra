@@ -336,14 +336,14 @@ Bucket (S3) в котором храниться состояние Terraform (�
 ![alt text](./Img/image-55.png)  
 Образ собран и начинаем загрузку в Registry  
 ![alt text](./Img/image-56.png)  
-Образ загружен, получаем список образов в Registry, начинаем установку NGINX в K8S  
+Образ загружен  
 ![alt text](./Img/image-57.png)  
-NGINX в K8S установлен, смотрим статус подов и начинаем установку Prometheus и Grafana  
+Получаем список образов в Registry, начинаем установку NGINX в K8S  
 ![alt text](./Img/image-58.png)  
-Prometheus и Grafana установлены, смотрим статус подов, создаем секрет для подключения K8S к Registry  
+NGINX в K8S установлен, смотрим статус подов и начинаем установку Prometheus и Grafana  
 ![alt text](./Img/image-61.png)  
-___________
 ![alt text](./Img/image-62.png)  
+Prometheus и Grafana установлены, смотрим статус подов, создаем секрет для подключения K8S к Registry  
 ![alt text](./Img/image-65.png)  
 ![alt text](./Img/image-66.png)  
 _____________
@@ -352,7 +352,7 @@ _____________
 ![alt text](./Img/image-60.png)  
 ![alt text](./Img/image-64.png)  
 ![alt text](./Img/image-63.png)  
-Финальное сочетание подов в K8S  
+Финальное состояние подов в K8S  
 ![alt text](./Img/image-67.png)  
 с убунту графана
 ![alt text](./Img/image-68.png)
