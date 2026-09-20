@@ -329,21 +329,31 @@ Bucket (S3) в котором храниться состояние Terraform (�
 ![alt text](./Img/image-50.png)  
 ![alt text](./Img/image-51.png)  
 Результат автоматической установки kubespray  
-![alt text](./Img/image-52.png)
-![alt text](./Img/image-54.png)
-![alt text](./Img/image-55.png)
-![alt text](./Img/image-56.png)
-![alt text](./Img/image-57.png)
-![alt text](./Img/image-58.png)
-![alt text](./Img/image-61.png)
-![alt text](./Img/image-62.png)
-![alt text](./Img/image-65.png)
-![alt text](./Img/image-66.png)
-![alt text](./Img/image-59.png)
-![alt text](./Img/image-60.png)
-![alt text](./Img/image-64.png)
-![alt text](./Img/image-63.png)
-![alt text](./Img/image-67.png)
+![alt text](./Img/image-52.png)  
+Настройка SSH туннеля от Ubuntu VM (diplom-vm) до Бастион, туннеля до нод K8S, проверка связи с kubeAPI  
+![alt text](./Img/image-54.png)  
+Зачищаем на Ubuntu VM (diplom-vm) конфигурацию Docker, авторизовываемся в нашем Registry, начинаем сборку тестового приложения  
+![alt text](./Img/image-55.png)  
+Образ собран и начинаем загрузку в Registry  
+![alt text](./Img/image-56.png)  
+Образ загружен, получаем список образов в Registry, начинаем установку NGINX в K8S  
+![alt text](./Img/image-57.png)  
+NGINX в K8S установлен, смотрим статус подов и начинаем установку Prometheus и Grafana  
+![alt text](./Img/image-58.png)  
+Prometheus и Grafana установлены, смотрим статус подов, создаем секрет для подключения K8S к Registry  
+![alt text](./Img/image-61.png)  
+___________
+![alt text](./Img/image-62.png)  
+![alt text](./Img/image-65.png)  
+![alt text](./Img/image-66.png)  
+_____________
+Статусы подов сервисов на предыдущих шагах в K8S 
+![alt text](./Img/image-59.png)  
+![alt text](./Img/image-60.png)  
+![alt text](./Img/image-64.png)  
+![alt text](./Img/image-63.png)  
+Финальное сочетание подов в K8S  
+![alt text](./Img/image-67.png)  
 с убунту графана
 ![alt text](./Img/image-68.png)
 ![alt text](./Img/image-69.png)
