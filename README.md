@@ -271,28 +271,48 @@ make destroy-all         # Уничтожение текущей инфраст�
 Часть артефактов собирается в процессе разворачивания (make deploy-all), а часть собирается после, чтобы показать бесшовность процесса.  
 ### Инфраструктура
 #### Backend (S3 + SA)
-Состояние статической части проекта  
+_________
+Статичная часть проекта (бакет S3 и учетная запись SA) - состояние через Terraform  
+_________
 ![alt text](./Img/image.png)  
+_________
 Так выглядит в облаке инфраструктура (бакет и аккаунт) до запуска развертывания инфраструктуры  
+_________
 ![alt text](./Img/image-2.png)  
+_________
 Сервисный аккаунт (SA) для управления инфраструктурой через код в облаке Яндекс  
+_________
 ![alt text](./Img/image-1.png)  
+_________
 Bucket (S3) в котором храниться состояние Terraform (статичная часть проекта)  
+_________
 ![alt text](./Img/image-3.png)  
 #### Infrastructure
 Время запуска make deploy-all 18.09.2026 20:09  
+_________
 Запуск make deploy-all  
+_________
 ![alt text](./Img/image-12.png)  
+_________
 Инфраструктура создана Terraform  
+_________
 ![alt text](./Img/image-13.png)  
+_________
 Даем минуту прогреться VM и завершить системные процессы запуска ОС  
+_________
 ![alt text](./Img/image-14.png)  
+_________
 Так выглядит инфраструктура проекта после выполнения манифеста Terraform  в облаке Яндекс  
+_________
 ![alt text](./Img/image-15.png)  
+_________
 Обновляем конфигурации динамической информацией о созданной инфраструктуре и запускаем сетевые тесты  
+_________
 ![alt text](./Img/image-16.png)  
 ![alt text](./Img/image-17.png)  
+_________
 Тесты завершены и запускается автоматическая установка и конфигурирование kubespray  
+_________
 ![alt text](./Img/image-18.png)  
 _________
 Артефакты установки kubespray (время установки 00:23:18, поправка времени на +03:00:00)  
@@ -332,68 +352,99 @@ _________
 ![alt text](./Img/image-51.png)  
 _________
 Результат автоматической установки kubespray  
+_________
 ![alt text](./Img/image-52.png)  
+_________
 Настройка SSH туннеля от Ubuntu VM (diplom-vm) до Бастион, туннеля до нод K8S, проверка связи с kubeAPI  
+_________
 ![alt text](./Img/image-54.png)  
+_________
 Зачищаем на Ubuntu VM (diplom-vm) конфигурацию Docker, авторизовываемся в нашем Registry, начинаем сборку тестового приложения  
+_________
 ![alt text](./Img/image-55.png)  
-Образ собран и начинаем загрузку в Registry  
+_________
+Образ тестового приложения собран, начинаем загрузку в Registry  
+_________
 ![alt text](./Img/image-56.png)  
-Образ загружен  
+_________
+Образ тестового приложения загружен в Registry  
+_________
 ![alt text](./Img/image-57.png)  
+_________
 Получаем список образов в Registry, начинаем установку NGINX в K8S  
+_________
 ![alt text](./Img/image-58.png)  
+_________
 NGINX в K8S установлен  
+_________
 ![alt text](./Img/image-61.png)  
+_________
 Смотрим статус подов и начинаем установку Prometheus и Grafana  
+_________
 ![alt text](./Img/image-62.png)  
+_________
 Prometheus и Grafana установлены  
+_________
 ![alt text](./Img/image-65.png)  
-Смотрим статус подов, создаем секрет для подключения K8S к Registry
+_________
+Смотрим статус подов, создаем секрет для подключения K8S к Registry  
+_________
 ![alt text](./Img/image-66.png)  
+_________
 Статусы подов сервисов на предыдущих шагах в K8S 
+_________
 ![alt text](./Img/image-59.png)  
 ![alt text](./Img/image-60.png)  
 ![alt text](./Img/image-64.png)  
 ![alt text](./Img/image-63.png)  
+_________
 Финальное состояние подов в K8S  
+_________
 ![alt text](./Img/image-67.png)  
-с убунту графана
-![alt text](./Img/image-68.png)
-![alt text](./Img/image-69.png)
-с убунту прометеус
-![alt text](./Img/image-70.png)
-с убунту приложение
-![alt text](./Img/image-72.png)
-С териминала
+_________
+Открываем UI Grafana с Ubuntu VM (diplom-vm)  
+_________
+![alt text](./Img/image-68.png)  
+![alt text](./Img/image-69.png)  
+_________
+Открываем UI Prometheus с Ubuntu VM (diplom-vm)  
+_________
+![alt text](./Img/image-70.png)  
+_________
+Открываем UI тестового приложения с Ubuntu VM (diplom-vm)  
+_________
+![alt text](./Img/image-72.png)  
+_________
+Проверяем доступность UI Grafana и тестового приложения через терминал Ubuntu VM (diplom-vm)  
 ![alt text](./Img/image-73.png)
-
-c Wibdows ПК
-![alt text](./Img/image-77.png)
+_________
+Проверяем доступность UI Grafana и тестового приложения через терминал Windows  (доступ через публичный адрес)  
+_________
+![alt text](./Img/image-77.png)  
 ![alt text](./Img/image-74.png)  
 ![alt text](./Img/image-75.png)  
-![alt text](./Img/image-76.png) 
+![alt text](./Img/image-76.png)  
 
-![alt text](./Img/image-78.png)
-![alt text](./Img/image-79.png)
-![alt text](./Img/image-80.png)
-![alt text](./Img/image-81.png)
-![alt text](./Img/image-82.png)
-![alt text](./Img/image-83.png)
+![alt text](./Img/image-78.png)  
+![alt text](./Img/image-79.png)  
+![alt text](./Img/image-80.png)  
+![alt text](./Img/image-81.png)  
+![alt text](./Img/image-82.png)  
+![alt text](./Img/image-83.png)  
 
-![alt text](./Img/image-84.png)
-![alt text](./Img/image-85.png)
-![alt text](./Img/image-86.png)
-![alt text](./Img/image-87.png)
-![alt text](./Img/image-88.png)
-![alt text](./Img/image-89.png)
-![alt text](./Img/image-90.png)
-![alt text](./Img/image-91.png)
-![alt text](./Img/image-92.png)
+![alt text](./Img/image-84.png)  
+![alt text](./Img/image-85.png)  
+![alt text](./Img/image-86.png)  
+![alt text](./Img/image-87.png)  
+![alt text](./Img/image-88.png)  
+![alt text](./Img/image-89.png)  
+![alt text](./Img/image-90.png)  
+![alt text](./Img/image-91.png)  
+![alt text](./Img/image-92.png)  
 
 разбираем инфру
-![alt text](./Img/image-93.png)
-![alt text](./Img/image-94.png)
-![alt text](./Img/image-95.png)
-![alt text](./Img/image-96.png)
-![alt text](./Img/image-97.png)
+![alt text](./Img/image-93.png)  
+![alt text](./Img/image-94.png)  
+![alt text](./Img/image-95.png)  
+![alt text](./Img/image-96.png)  
+![alt text](./Img/image-97.png)  
