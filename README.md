@@ -228,47 +228,47 @@ sequenceDiagram
 ```
 ## Как достигается полная автоматизация
 ### Backend (S3 + SA)
-make backend-init        # terraform init
-make backend-plan        # terraform plan
-make backend-apply       # terraform apply
+make backend-init        # terraform init  
+make backend-plan        # terraform plan  
+make backend-apply       # terraform apply  
 
 ### Infrastructure
-make infra-init          # terraform init
-make infra-plan          # terraform plan
-make infra-apply         # Созлдание инфраструктуры в облаке
-make infra-destroy       # Уничтожение инфраструктуры в облаке
-test-infra               # Тестирование инфраструктуры test-infra.sh
-infra-redeploy           # Развертывания Kubernetes
+make infra-init          # terraform init  
+make infra-plan          # terraform plan  
+make infra-apply         # Созлдание инфраструктуры в облаке  
+make infra-destroy       # Уничтожение инфраструктуры в облаке  
+test-infra               # Тестирование инфраструктуры test-infra.sh  
+infra-redeploy           # Развертывания Kubernetes  
 
 ### K8S
-make k8s-deploy          # Развертывания Kubernetes 
-make k8s-retry           # Повторный запуск развертывания Kubernetes на случай ошибок первого запуска
-make k8s-reset           # Сброс конфигурации Kubernetes 
-make k8s-retry-node1     # Повторный запуск настройки node1
-make k8s-retry-node2     # Повторный запуск настройки node2
-make k8s-retry-node3     # Повторный запуск настройки node3
-make k8s-tunnel          # Настройка SSH-туннеля и kubeconfig к API-серверу Kubernetes
-make registry-login      # Авторизация в Registry
+make k8s-deploy          # Развертывания Kubernetes  
+make k8s-retry           # Повторный запуск развертывания Kubernetes на случай ошибок первого запуска  
+make k8s-reset           # Сброс конфигурации Kubernetes  
+make k8s-retry-node1     # Повторный запуск настройки node1  
+make k8s-retry-node2     # Повторный запуск настройки node2  
+make k8s-retry-node3     # Повторный запуск настройки node3  
+make k8s-tunnel          # Настройка SSH-туннеля и kubeconfig к API-серверу Kubernetes  
+make registry-login      # Авторизация в Registry  
 
 ### Application
-make build-app           # docker build
-make push-app            # docker push в Registry
-make list-images         # Список образов в Registry
-make docker-clean        # Сброс настроек и данных в docker на Ubuntu VM (diplom-vm)
+make build-app           # docker build  
+make push-app            # docker push в Registry  
+make list-images         # Список образов в Registry  
+make docker-clean        # Сброс настроек и данных в docker на Ubuntu VM (diplom-vm)  
 
 ### Service
-make deploy-ingress      # Установка ingress-nginx в Kubernetes
-make deploy-monitoring   # Установка kube-prometheus-stack в Kubernetes
-make deploy-app          # Установка тестового приложения в Kubernetes
-make deploy-all-k8s      # Все вышеперечисленное
-make check-ingress       # Тестирование Ingress
+make deploy-ingress      # Установка ingress-nginx в Kubernetes  
+make deploy-monitoring   # Установка kube-prometheus-stack в Kubernetes  
+make deploy-app          # Установка тестового приложения в Kubernetes  
+make deploy-all-k8s      # Все вышеперечисленное  
+make check-ingress       # Тестирование Ingress  
 
 ### Master 
-make deploy-all          # Бесшовное разворачивание от и до
-make destroy-all              # Уничтожение текущей инфраструктуры и зачистка данных 
+make deploy-all          # Бесшовное разворачивание от и до  
+make destroy-all         # Уничтожение текущей инфраструктуры и зачистка данных  
 
 ## Артефакты подтверждающие выполнение задач из дипломной работ
-Часть артефактов собирается в процессе разворачивания (make deploy-all), а часть собирается после, чтобы показать бесшовность процеса.
+Часть артефактов собирается в процессе разворачивания (make deploy-all), а часть собирается после, чтобы показать бесшовность процесcа.  
 ### Инфраструктура
 #### Backend (S3 + SA)
 ![alt text](./Img/image.png)
@@ -276,7 +276,7 @@ make destroy-all              # Уничтожение текущей инфра
 ![alt text](./Img/image-1.png)
 ![alt text](./Img/image-3.png)
 #### Infrastructure
-Время запуска make deploy-all 18.09.2026 20:09 20:49
+Время запуска make deploy-all 18.09.2026 20:09  
 ![alt text](./Img/image-12.png)
 ![alt text](./Img/image-13.png)
 ![alt text](./Img/image-14.png)
