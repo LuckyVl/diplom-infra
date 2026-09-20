@@ -1,4 +1,7 @@
 # Дипломная работа по профессии "DevOps-инженер"
+## Ресурсы
+https://github.com/LuckyVl/diplom-infra - основной код инфраструктуры
+https://github.com/LuckyVl/diplom-app - код тестового приложения и CI\CD
 ## Как реализовано
 ### Схема
 ```mermaid
